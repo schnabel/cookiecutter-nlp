@@ -1,0 +1,4 @@
+{
+  "service_name": "Entity Recognition news example",
+  "project_slug": "{{ cookiecutter.service_name.lower().replace(' ', '_').replace('-', '_') }}"
+}

@@ -1,0 +1,147 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: foo
+spec:
+  selector:
+    app: foo
+  ports:
+    - name: http
+      protocol: TCP
+      port: 8100
+      targetPort: 8000
+      nodePort: 30000
+  type: NodePort
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: foo
+  labels:
+    app: foo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: foo
+  template:
+    metadata:
+      labels:
+        app: foo
+    spec:
+      containers:
+      - name: foo
+        image: schnabel/app
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 8000
+        env:
+          - name: NEO4J_URL
+            value: "neo4j://neo4j:7687"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rabbitmq
+spec:
+  selector:
+    app: rabbitmq
+  ports:
+    - name: queue
+      protocol: TCP
+      port: 5672
+      targetPort: 5672
+      nodePort: 30185
+    - name: admin-gui
+      protocol: TCP
+      port: 15672
+      targetPort: 15672
+  type: NodePort
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rabbitmq
+  labels:
+    app: rabbitmq
+spec:
+  selector:
+    matchLabels:
+      app: rabbitmq
+  template:
+    metadata:
+      labels:
+        app: rabbitmq
+    spec:
+      containers:
+      - name: service
+        image: rabbitmq:3-management
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: worker
+  labels:
+    app: worker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: worker
+  template:
+    metadata:
+      labels:
+        app: worker
+    spec:
+      containers:
+      - name: worker
+        image: schnabel/app
+        imagePullPolicy: Never
+        command: ['pipenv', 'run', 'celery', '-A', 'app.er_worker', 'worker', '--loglevel=INFO']
+        ports:
+        - containerPort: 8000
+        env:
+          - name: NEO4J_URL
+            value: "neo4j://neo4j:7687"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: neo4j
+  labels:
+    app: neo4j
+spec:
+  selector:
+    matchLabels:
+      app: neo4j
+  template:
+    metadata:
+      labels:
+        app: neo4j
+    spec:
+      containers:
+      - name: neo4j
+        image: neo4j:latest
+        env:
+        - name: NEO4J_AUTH
+          value: "neo4j/foo"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: neo4j
+spec:
+  selector:
+    app: neo4j
+  ports:
+    - name: http
+      protocol: TCP
+      port: 7474
+      targetPort: 7474
+      nodePort: 30474
+    - name: bolt
+      protocol: TCP
+      port: 7687
+      targetPort: 7687
+      nodePort: 30687
+  type: NodePort
