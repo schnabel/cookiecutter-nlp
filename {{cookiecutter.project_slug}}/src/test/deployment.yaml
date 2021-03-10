@@ -1,10 +1,10 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: foo
+  name: {{cookiecutter.service_dns}}-service
 spec:
   selector:
-    app: foo
+    app: {{cookiecutter.service_dns}}-app
   ports:
     - name: http
       protocol: TCP
@@ -16,22 +16,22 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: foo
+  name: {{cookiecutter.service_dns}}-app
   labels:
-    app: foo
+    app: {{cookiecutter.service_dns}}-app
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: foo
+      app: {{cookiecutter.service_dns}}-app
   template:
     metadata:
       labels:
-        app: foo
+        app: {{cookiecutter.service_dns}}-app
     spec:
       containers:
-      - name: foo
-        image: schnabel/app
+      - name: {{cookiecutter.service_dns}}
+        image: {{cookiecutter.project_slug}}
         imagePullPolicy: Never
         ports:
         - containerPort: 8000
@@ -80,24 +80,24 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: worker
+  name: {{cookiecutter.service_dns}}-worker
   labels:
-    app: worker
+    app: {{cookiecutter.service_dns}}-worker
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: worker
+      app: {{cookiecutter.service_dns}}-worker
   template:
     metadata:
       labels:
-        app: worker
+        app: {{cookiecutter.service_dns}}-worker
     spec:
       containers:
-      - name: worker
-        image: schnabel/app
+      - name: {{cookiecutter.service_dns}}-worker
+        image: {{cookiecutter.project_slug}}
         imagePullPolicy: Never
-        command: ['pipenv', 'run', 'celery', '-A', 'app.er_worker', 'worker', '--loglevel=INFO']
+        command: ['pipenv', 'run', 'celery', '-A', '{{cookiecutter.project_slug}}.er_worker', 'worker', '--loglevel=INFO']
         ports:
         - containerPort: 8000
         env:
@@ -124,7 +124,7 @@ spec:
         image: neo4j:latest
         env:
         - name: NEO4J_AUTH
-          value: "neo4j/foo"
+          value: "neo4j/{{cookiecutter.neo4j_password}}"
 ---
 apiVersion: v1
 kind: Service

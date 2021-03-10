@@ -8,8 +8,7 @@ plugins {
 import org.schnabelsoft.gradle.python.plugin.*
 
 docker {
-    name = "schnabel/app"
-    tag("foo", "0.1.0")
+    name = "{{cookiecutter.project_slug}}"
     files(file("Pipfile"), file("Pipfile.lock"), file("src/"))
 }
 
@@ -17,7 +16,7 @@ tasks.register("createTestNamespace") {
     group = "minikube"
     doLast() {
         exec() {
-            commandLine(listOf("kubectl", "create", "namespace", "foo-integration-test"))
+            commandLine(listOf("kubectl", "create", "namespace", "{{cookiecutter.service_dns}}-test"))
         }
     }
 }
@@ -26,18 +25,18 @@ tasks.register("deleteTestNamespace") {
     group = "minikube"
     doLast() {
         exec() {
-            commandLine(listOf("kubectl", "delete", "namespace", "foo-integration-test"))
+            commandLine(listOf("kubectl", "delete", "namespace", "{{cookiecutter.service_dns}}-test"))
         }
     }
 }
 
-tasks.register("deployFoo") {
+tasks.register("deployTestStack") {
     group = "test"
     dependsOn("createTestNamespace")
     doFirst {
         exec() {
             environment(minikube.getDockerEnv("minikube"))
-            commandLine(listOf("kubectl", "apply", "-n", "foo-integration-test", "-f", "src/test/foo-deployment.yaml"))
+            commandLine(listOf("kubectl", "apply", "-n", "{{cookiecutter.service_dns}}-test", "-f", "src/test/deployment.yaml"))
         }        
         exec() {
             commandLine(listOf("bash", "-c", "wget -qO- --retry-connrefused -t 100 --waitretry 1 http://$(minikube ip):30000/openapi.json &> /dev/null"))
@@ -47,14 +46,14 @@ tasks.register("deployFoo") {
 
 tasks.register<PipenvRunTask>("integrationTest") {
     group = "test"
-    dependsOn("deployFoo", "build")
+    dependsOn("deployTestStack", "build")
     command = "pytest src/test/integration"
     finalizedBy("deleteTestNamespace")
 }
 
 tasks.register<PipenvRunTask>("loadTest") {
     group = "test"
-    dependsOn("deployFoo", "build")
+    dependsOn("deployTestStack", "build")
     command = "locust -f src/test/load/locustfile.py --headless -u 100 -r 10 --host http://192.168.49.2:30000 --run-time 5min"
     finalizedBy("deleteTestNamespace")
 }
