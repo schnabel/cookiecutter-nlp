@@ -15,3 +15,17 @@ To see all possible gradle commands run:
 ``` bash
 ./gradlew tasks --all
 ```
+Example commands:
+``` bash
+./gradlew pytest                ## run all pytests
+./gradlew integrationTest       ## set up a complete application stack in minikube and run the tests against real dbs etc
+./gradlew loadTest              ## set up a complete application stack in minikube and run load tests with locust
+```
+
+## View the entities detected with spacy in neo4j
+* Get the ip of your minikube:
+``` bash
+minikube ip
+```
+* To use the neo4j UI, open http://minikube_ip:30474/ in your browser.
+* Change the connect URL to port 30687 and type the password you choose when setting up the project (neo4j_change_me in case you did not change it :-)).
