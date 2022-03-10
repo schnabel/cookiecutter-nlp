@@ -56,6 +56,7 @@ spec:
       protocol: TCP
       port: 15672
       targetPort: 15672
+      nodePort: 30672
   type: NodePort
 ---
 apiVersion: apps/v1
