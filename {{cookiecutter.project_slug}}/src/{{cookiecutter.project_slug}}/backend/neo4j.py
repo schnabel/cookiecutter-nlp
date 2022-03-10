@@ -45,9 +45,13 @@ class Documents:
         for entity in entities:
             tx.run("MERGE (entity:" + entity.label_ + " {text: $text})", text=entity.text)
             tx.run(
-                "MATCH (document:Document {content: $content}), (entity:" + entity.label_ + " {text: $text}) MERGE (document)-[:SPAN]->(entity)",
+                "MATCH (document:Document {content: $content}), (entity:" 
+                + entity.label_ 
+                + " {text: $text}) MERGE (document)-[:SPAN {start: $start, end: $end}]->(entity)",
                 content=content,
-                text=entity.text
+                text=entity.text,
+                start=entity.start_char,
+                end=entity.end_char
             )
 
 documents = Documents()
